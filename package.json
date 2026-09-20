@@ -80,7 +80,7 @@
     "z-ai-web-dev-sdk": "^0.0.17",
     "zod": "^4.0.2",
     "zustand": "^5.0.6",
-    "@cubiczan/resilience": "github:icohangar-ops/cubiczan-resilience#60dc5f4b7030bef492fe5df0d432ae49fd612f37"
+    "@cubiczan/resilience": "github:icohangar-ops/cubiczan-resilience#37ce1571f5beb751d153ecdc3b1457cd9c871e37"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
