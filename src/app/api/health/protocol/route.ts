@@ -74,7 +74,6 @@ export async function GET(request: NextRequest) {
       trusted_hop_default: 1,
       upstream_allowlist: METACOMP_ALLOWLIST,
     },
-    metacomp_api_key_configured: Boolean(process.env.METACOMP_API_KEY),
   };
 
   if (!authorized) {
@@ -91,6 +90,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       status: "ok",
       protocol,
+      metacomp_api_key_configured: Boolean(process.env.METACOMP_API_KEY),
       probe: cachedProbe.payload,
       cached: true,
     });
@@ -98,5 +98,11 @@ export async function GET(request: NextRequest) {
 
   const probe = await probeUpstream();
   cachedProbe = { at: now, payload: probe };
-  return NextResponse.json({ status: "ok", protocol, probe, cached: false });
+  return NextResponse.json({
+    status: "ok",
+    protocol,
+    metacomp_api_key_configured: Boolean(process.env.METACOMP_API_KEY),
+    probe,
+    cached: false,
+  });
 }
