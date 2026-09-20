@@ -27,9 +27,12 @@ interface ProtocolProbe {
 
 function tokenMatches(candidate: string | null, secret: string): boolean {
   if (!candidate) return false;
-  const a = Buffer.from(candidate);
-  const b = Buffer.from(secret);
-  if (a.length !== b.length) return false;
+  // Hash both sides before the timing-safe compare (prelint): comparing raw
+  // buffers needs a length early-exit, which leaks the secret's byte length
+  // through response-time differences. SHA-256 digests are fixed-width, so
+  // the compare is constant-time over the digest and leaks no length.
+  const a = createHash("sha256").update(candidate).digest();
+  const b = createHash("sha256").update(secret).digest();
   return timingSafeEqual(a, b);
 }
 
