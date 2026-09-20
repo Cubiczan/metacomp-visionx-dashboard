@@ -2,11 +2,13 @@
   "name": "nextjs_tailwind_shadcn_ts",
   "version": "0.2.0",
   "private": true,
+  "trustedDependencies": ["@cubiczan/resilience"],
   "scripts": {
     "dev": "next dev -p 3000 2>&1 | tee dev.log",
     "build": "next build && cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/",
     "start": "NODE_ENV=production bun .next/standalone/server.js 2>&1 | tee server.log",
     "lint": "eslint .",
+  "postinstall": "node scripts/build-git-dep-resilience.mjs",
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
@@ -78,7 +80,8 @@
     "vaul": "^1.1.2",
     "z-ai-web-dev-sdk": "^0.0.17",
     "zod": "^4.0.2",
-    "zustand": "^5.0.6"
+    "zustand": "^5.0.6",
+    "@cubiczan/resilience": "github:icohangar-ops/cubiczan-resilience#37ce1571f5beb751d153ecdc3b1457cd9c871e37"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
