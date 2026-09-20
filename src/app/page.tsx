@@ -55,7 +55,7 @@ export default function DashboardPage() {
         body: JSON.stringify({ network, address }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || data.details || "Wallet check failed");
+      if (!res.ok) throw new Error(data.error || "Wallet check failed");
       setResults(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error occurred");

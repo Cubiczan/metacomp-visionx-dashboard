@@ -1,15 +1,29 @@
 "use client";
 
 import { WalletCheckResponse, formatUSDFull, truncateAddress, RiskLevel, RISK_CONFIG } from "@/lib/metacomp";
-import { FileText, Calendar, Shield } from "lucide-react";
+import { scoreReportConfidence, vendorAlertCoverage } from "@/lib/confidence";
+import { FileText, Calendar, Shield, Gauge } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ComplianceReportProps {
   data: WalletCheckResponse["data"];
 }
 
+const BAND_STYLES: Record<string, string> = {
+  CLEAR: "bg-emerald-500/10 border-emerald-500/20 text-emerald-400",
+  PARTIAL: "bg-amber-500/10 border-amber-500/20 text-amber-400",
+  LOW: "bg-red-500/10 border-red-500/20 text-red-400",
+};
+
 export function ComplianceReport({ data }: ComplianceReportProps) {
   const config = RISK_CONFIG[data.level];
+  const confidence = scoreReportConfidence({
+    level: data.level,
+    vendorAlertCoverage: vendorAlertCoverage([data.extra.chainalysis, data.extra.vendor1, data.extra.vendor2, data.extra.vendor3]),
+    hasFlowBreakdown: Boolean(data.extra.incomingRiskExposureBreakdown && data.extra.outgoingRiskExposureBreakdown),
+    transactionSampleSize: data.extra.tx.length,
+    timeCoveragePresent: Boolean(data.extra.earliestTransactionTime && data.extra.latestTransactionTime),
+  });
 
   return (
     <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
@@ -46,6 +60,31 @@ export function ComplianceReport({ data }: ComplianceReportProps) {
         <Separator />
         <Row label="Incoming High-Risk" value={formatUSDFull(data.extra.incomingRiskExposureBreakdown.highRiskAmount)} mono />
         <Row label="Outgoing High-Risk" value={formatUSDFull(data.extra.outgoingRiskExposureBreakdown.highRiskAmount)} mono />
+      </div>
+
+      <Separator />
+      <div className="mt-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Gauge className="h-3.5 w-3.5 text-slate-400" />
+            <span className="text-[11px] font-semibold text-slate-300">Report Confidence</span>
+          </div>
+          <span className={cn("px-2 py-0.5 rounded-full text-[10px] border", BAND_STYLES[confidence.band])}>
+            {confidence.band} · {confidence.score}/100
+          </span>
+        </div>
+        <div className="mt-2 space-y-1">
+          {confidence.factors.map((factor) => (
+            <div key={factor.name} className="flex items-center justify-between gap-2 text-[10px]">
+              <span className="text-slate-500">{factor.name}</span>
+              <span className="text-slate-600">{factor.evidence}</span>
+              <span className="font-mono text-slate-400">{factor.points}/{factor.cap}</span>
+            </div>
+          ))}
+        </div>
+        <p className="mt-2 text-[9px] text-slate-600">
+          Deterministic capped-factor score over report completeness — evidence carried verbatim above.
+        </p>
       </div>
 
       <div className="mt-4 pt-4 border-t border-slate-700/30 flex items-center gap-2 text-[10px] text-slate-600">

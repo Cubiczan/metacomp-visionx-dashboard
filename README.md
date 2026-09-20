@@ -284,6 +284,20 @@ The dashboard screens wallets across **9 high-risk categories**:
 
 ---
 
+## Propagation Matrix — Wave C rows
+
+### Row 19 — protocol-level health probes: ADOPTED
+
+`/api/health/protocol` (`src/app/api/health/protocol/route.ts`) replaces the implicit "the dashboard renders, so we're healthy" posture with an explicit protocol-health surface. Liveness is 200-always; dependency state is encoded in the body. The unauthenticated surface is config-only (proxy-guard configuration booleans, upstream allowlist — no upstream calls, no secret values). The deep probe requires a timing-safe bearer match on `PROTOCOL_HEALTH_TOKEN`; when the token is unset, probing is refused with a reason code (fail-closed). Authorized probes run a bounded 5-second reachability handshake to the metacomp.ai base URL — no API key, no quota spend, no model calls — classified to reason codes (`UPSTREAM_REACHABLE`, `UPSTREAM_DEGRADED`, `UPSTREAM_TIMEOUT`, `UPSTREAM_UNREACHABLE`) with a schema fingerprint (SHA-256 over the status class + content type) for drift alarms, cached 60 seconds. Raw upstream response text is never returned; the proxy routes (`/api/metacomp/wallet`, `/api/metacomp/transaction`) likewise return reason-code envelopes only, logging raw upstream errors server-side.
+
+**Revisit trigger:** an external uptime monitor with schema validation is stood in front of this dashboard — then the probe's marginal value drops to reason-code standardization and the surface can be retired.
+
+### Row 20 — evidence-carrying deterministic confidence: ADOPTED
+
+The compliance report now carries a deterministic, capped-factor confidence score beside the evidence it was derived from (`src/lib/confidence.ts`, rendered in `src/components/dashboard/ComplianceReport.tsx`). Five capped factors — risk level present (30), vendor alert coverage (25), risk-flow breakdown (20), transaction sample (15), time coverage (10) — produce a 0–100 score with a CLEAR/PARTIAL/LOW band, and every factor lists its verbatim evidence (e.g. `3/4 vendor platforms report alerts`). The row's reversal condition (UI displays only a headline) does not fire: this dashboard renders the detailed evidence, so a human reads it — which is exactly where the scaffolding pays off. The score is a pure function: no model, no I/O, deterministic on the same input.
+
+**Revisit trigger:** the report degrades to a headline-only view (evidence rows removed) — then the confidence scaffolding loses its reader and should be reversed with it.
+
 ## Security Considerations
 
 - API key is stored **server-side only** — never sent to the browser

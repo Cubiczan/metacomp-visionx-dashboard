@@ -33,8 +33,9 @@ export async function POST(request: NextRequest) {
 
     if (!response.ok) {
       const errorText = await response.text();
+      console.error(`MetaComp upstream error (${response.status}):`, errorText);
       return NextResponse.json(
-        { error: `MetaComp API error: ${response.status}`, details: errorText },
+        { error: `MetaComp API error: ${response.status}` },
         { status: response.status }
       );
     }
